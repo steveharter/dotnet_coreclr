@@ -771,7 +771,7 @@ class CompilationDomain : public AppDomain,
     VPTR_MULTI_VTABLE_CLASS(CompilationDomain, AppDomain);
 #endif
 
- public:
+public:
     BOOL                    m_fForceDebug; 
     BOOL                    m_fForceProfiling;
     BOOL                    m_fForceInstrument;
@@ -784,9 +784,8 @@ class CompilationDomain : public AppDomain,
     // DDB 175659: Make sure that canCallNeedsRestore() returns FALSE during compilation 
     // domain shutdown.
     void setCannotCallNeedsRestore() { m_pTargetImage = NULL; }
-    
-  private:
 
+private:
     Assembly                *m_pTargetAssembly;     // Assembly being compiled
     Module                  *m_pTargetModule;       // Module currently being compiled. Needed for multi-module assemblies
     DataImage               *m_pTargetImage;        // Data image
@@ -803,8 +802,10 @@ class CompilationDomain : public AppDomain,
 
     CQuickArray<RefCache*> m_rRefCaches;
 
-    HRESULT AddDependencyEntry(PEAssembly *pFile, mdAssemblyRef ref,mdAssemblyRef def);
+#ifdef CROSSGEN_COMPILE
+    HRESULT AddDependencyEntry(PEAssembly *pFile, mdAssemblyRef ref, mdAssemblyRef def);
     void ReleaseDependencyEmitter();
+#endif
 
 #ifndef FEATURE_CORECLR // hardbinding
     PtrHashMap              m_hardBoundModules;     // Hard dependency on native image of these dependency modules
@@ -815,7 +816,7 @@ class CompilationDomain : public AppDomain,
     void CheckLoadHints();
 #endif
 
-  public:
+public:
 
 #ifndef DACCESS_COMPILE
     CompilationDomain(BOOL fForceDebug = FALSE, 
@@ -824,6 +825,7 @@ class CompilationDomain : public AppDomain,
     ~CompilationDomain();
 #endif
 
+#ifdef CROSSGEN_COMPILE
     void Init(
 #ifdef MDIL
               MDILCompilationFlags     mdilCompilationFlags
@@ -886,21 +888,23 @@ class CompilationDomain : public AppDomain,
 
         // Add a new cache entry
         HRESULT hr;
-        
         if (FAILED(hr = m_rRefCaches.ReSizeNoThrow(uSize + 1)))
         {
             _ASSERTE(hr == E_OUTOFMEMORY);
             return NULL;
         }
-        
         m_rRefCaches[uSize] = new (nothrow) RefCache(pModule);
         return m_rRefCaches[uSize];
     }
 
     void SetTarget(Assembly * pAssembly, Module *pModule);
-    
     void SetTargetImage(DataImage * pImage, CEEPreloader * pPreloader);
     DataImage * GetTargetImage() { LIMITED_METHOD_CONTRACT; return m_pTargetImage; }
+
+    void SetDependencyEmitter(IMetaDataAssemblyEmit *pEmitter);
+
+#endif // CROSSGEN_COMPILE
+public:
 
     Assembly * GetTargetAssembly()
         { LIMITED_METHOD_CONTRACT; return m_pTargetAssembly; }
@@ -919,8 +923,6 @@ class CompilationDomain : public AppDomain,
 #ifdef CROSSGEN_COMPILE
     HRESULT SetPlatformWinmdPaths(LPCWSTR pwzPlatformWinmdPaths) DAC_EMPTY_RET(E_FAIL);
 #endif
-
-    void SetDependencyEmitter(IMetaDataAssemblyEmit *pEmitter);
 };
 
 #endif // COMPILE_H_

@@ -165,6 +165,7 @@ set(VM_SOURCES_WKS
     commemoryfailpoint.cpp
     commethodrental.cpp
     commodule.cpp
+    compilestubs.cpp
     compatibilityswitch.cpp
     comsynchronizable.cpp
     comthreadpool.cpp

@@ -242,7 +242,6 @@ if (CLR_CMAKE_PLATFORM_UNIX)
     else()
       clr_unknown_arch()
     endif()
-      
   endif(CLR_CMAKE_PLATFORM_LINUX)
 
   if(CLR_CMAKE_PLATFORM_DARWIN)
@@ -253,23 +252,55 @@ if (CLR_CMAKE_PLATFORM_UNIX)
     message("Detected FreeBSD amd64")
   endif(CLR_CMAKE_PLATFORM_FREEBSD)
 
-endif(CLR_CMAKE_PLATFORM_UNIX)
+  # set the CLANG sanitizer flags for debug build
+  if(UPPERCASE_CMAKE_BUILD_TYPE STREQUAL DEBUG)
+    # obtain settings from running enablesanitizers.sh
+    string(FIND "$ENV{DEBUG_SANITIZERS}" "asan" __ASAN_POS)
+    string(FIND "$ENV{DEBUG_SANITIZERS}" "ubsan" __UBSAN_POS)
+    if ((${__ASAN_POS} GREATER -1) OR (${__UBSAN_POS} GREATER -1))
+      # set compiler flags
+      # -fdata-sections -ffunction-sections: each function has own section instead of one per .o file (needed for -Wl and --gc-sections)
+      # -O1: basic level of optimization
+      # -fPIC: required for shared libraries (Position Independent Code)
+      # -fno-omit-frame-pointer: better stack dumps for debugging
+      set(CLR_SANITIZE_CXX_FLAGS "${CLR_SANITIZE_CXX_FLAGS} -fdata-sections -ffunction-sections -O1 -fPIC -fno-omit-frame-pointer -fsanitize=")
 
-if(CLR_CMAKE_PLATFORM_UNIX)
-    add_subdirectory(src/ToolBox/SOS/lldbplugin)
-    add_subdirectory(src/pal)
-    add_subdirectory(src/corefx)
-    add_subdirectory(src/coreclr/hosts/unixcorerun)
-    add_subdirectory(src/coreclr/hosts/unixcoreconsole)
-endif(CLR_CMAKE_PLATFORM_UNIX)
+      # set linker flags
+      set(CLR_SANITIZE_LINK_FLAGS "${CLR_SANITIZE_LINK_FLAGS} -fsanitize=")
 
+      # apply sanitizer flags
+      if (${__ASAN_POS} GREATER -1) 
+        set(CLR_SANITIZE_CXX_FLAGS "${CLR_SANITIZE_CXX_FLAGS}address,")
+        set(CLR_SANITIZE_LINK_FLAGS "${CLR_SANITIZE_LINK_FLAGS}address,")
+        message("Address Sanitizer (asan) enabled")
+      endif ()
+      if (${__UBSAN_POS} GREATER -1)
+        set(CLR_SANITIZE_CXX_FLAGS "${CLR_SANITIZE_CXX_FLAGS}undefined")
+        set(CLR_SANITIZE_LINK_FLAGS "${CLR_SANITIZE_LINK_FLAGS}undefined")
+        message("Undefined Behavior Sanitizer (ubsan) enabled")
+      endif ()
+
+      set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${CLR_SANITIZE_CXX_FLAGS}")
+
+      set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} ${CLR_SANITIZE_LINK_FLAGS}")
+
+      # -Wl and --gc-sections: drop unused sections\functions (similar to Windows /Gy function-level-linking)
+      set(CMAKE_SHARED_LINKER_FLAGS_DEBUG "${CMAKE_SHARED_LINKER_FLAGS_DEBUG} ${CLR_SANITIZE_LINK_FLAGS} -Wl,--gc-sections")
+    endif ()
+  endif(UPPERCASE_CMAKE_BUILD_TYPE STREQUAL DEBUG)
+
+  add_subdirectory(src/ToolBox/SOS/lldbplugin)
+  add_subdirectory(src/pal)
+  add_subdirectory(src/corefx)
+  add_subdirectory(src/coreclr/hosts/unixcorerun)
+  add_subdirectory(src/coreclr/hosts/unixcoreconsole)
+endif(CLR_CMAKE_PLATFORM_UNIX)
 
 if(CLR_CMAKE_PLATFORM_DARWIN)
-    add_subdirectory(src/coreclr/hosts/osxbundlerun)
+  add_subdirectory(src/coreclr/hosts/osxbundlerun)
 endif(CLR_CMAKE_PLATFORM_DARWIN)
 
 # Add this subdir. We install the headers for the jit.
-
 add_subdirectory(src/pal/prebuilt/inc)
 
 # Set to 1 if you want to clear the CMAKE initial compiler flags and set all the flags explicitly
@@ -408,7 +439,7 @@ if(CLR_CMAKE_PLATFORM_UNIX)
 add_definitions(-DDISABLE_CONTRACTS)
 # The -ferror-limit is helpful during the porting, it makes sure the compiler doesn't stop
 # after hitting just about 20 errors.
-add_compile_options(-ferror-limit=4096)
+add_compile_options(-ferror-limit=40)
 
 # All warnings that are not explicitly disabled are reported as errors
 add_compile_options(-Werror)
