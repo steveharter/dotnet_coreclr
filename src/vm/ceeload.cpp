@@ -14844,7 +14844,7 @@ void ReflectionModule::ReleaseILData()
 
     Module::ReleaseILData();
 }
-#endif // CROSSGEN_COMPILE
+#endif // !CROSSGEN_COMPILE
 
 #endif // !DACCESS_COMPILE
 
