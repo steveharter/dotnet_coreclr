@@ -18,6 +18,15 @@ namespace System.Reflection
         public object Invoke(object[] parameters) => Invoke(BindingFlags.Default, binder: null, parameters: parameters, culture: null);
         public abstract object Invoke(BindingFlags invokeAttr, Binder binder, object[] parameters, CultureInfo culture);
 
+        [CLSCompliant(false)]
+        public virtual void InvokeAndCreate(TypedReference retVal) => throw new NotImplementedException();
+        [CLSCompliant(false)]
+        public virtual void InvokeAndCreate(TypedReference retVal, TypedReference arg0) => throw new NotImplementedException();
+        [CLSCompliant(false)]
+        public virtual void InvokeAndCreate(TypedReference retVal, TypedReference arg0, TypedReference arg1) => throw new NotImplementedException();
+        [CLSCompliant(false)]
+        public virtual void InvokeAndCreate(TypedReference retVal, TypedReference arg0, TypedReference arg1, TypedReference arg2) => throw new NotImplementedException();
+
         public override bool Equals(object obj) => base.Equals(obj);
         public override int GetHashCode() => base.GetHashCode();
 

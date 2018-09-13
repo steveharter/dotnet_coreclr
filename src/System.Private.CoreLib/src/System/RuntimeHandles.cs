@@ -693,6 +693,7 @@ namespace System
         private object m_e;
         private object m_f;
         private object m_g;
+        private object m_h;
 #pragma warning restore 169
 
         public RuntimeMethodHandleInternal m_value;

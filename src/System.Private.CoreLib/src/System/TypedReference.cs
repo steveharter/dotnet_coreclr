@@ -9,10 +9,13 @@ namespace System
 
     using System;
     using System.Reflection;
+    using System.Runtime.InteropServices;
     using System.Runtime.CompilerServices;
     using CultureInfo = System.Globalization.CultureInfo;
     using FieldInfo = System.Reflection.FieldInfo;
     using System.Runtime.Versioning;
+
+    using Unsafe = Internal.Runtime.CompilerServices.Unsafe;
 
     [CLSCompliant(false)]
     [System.Runtime.Versioning.NonVersionable] // This only applies to field layout
@@ -20,6 +23,30 @@ namespace System
     {
         private IntPtr Value;
         private IntPtr Type;
+
+        public static TypedReference Create(ref object value, Type type)
+        {
+            RuntimeType rtType = (RuntimeType)type;
+            if (RuntimeTypeHandle.IsValueType(rtType))
+            {
+                BoxObject boxObject = Unsafe.As<BoxObject>(value);
+                TypedReference tr = __makeref(boxObject.FirstByte);
+                tr.Type = rtType.m_handle;
+                return tr;
+            }
+            else
+            {
+                TypedReference tr = __makeref(value);
+                tr.Type = rtType.m_handle;
+                return tr;
+            }
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private sealed class BoxObject
+        {
+            public byte FirstByte;
+        }
 
         [CLSCompliant(false)]
         public static TypedReference MakeTypedReference(Object target, FieldInfo[] flds)

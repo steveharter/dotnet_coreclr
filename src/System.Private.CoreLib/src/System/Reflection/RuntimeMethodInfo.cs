@@ -12,7 +12,7 @@ using RuntimeTypeCache = System.RuntimeType.RuntimeTypeCache;
 
 namespace System.Reflection
 {
-    internal sealed class RuntimeMethodInfo : MethodInfo, IRuntimeMethodInfo
+    internal sealed partial class RuntimeMethodInfo : MethodInfo, IRuntimeMethodInfo
     {
         #region Private Data Members
         private IntPtr m_handle;

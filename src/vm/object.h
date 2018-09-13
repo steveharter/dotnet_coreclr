@@ -1235,6 +1235,7 @@ protected:
     OBJECTREF           m_empty5;
     OBJECTREF           m_empty6;
     OBJECTREF           m_empty7;
+    OBJECTREF           m_empty8;
     MethodDesc *        m_pMD;
 
 public:

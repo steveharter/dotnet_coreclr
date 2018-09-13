@@ -53,6 +53,17 @@ namespace System.Reflection
         public object Invoke(object obj, object[] parameters) => Invoke(obj, BindingFlags.Default, binder: null, parameters: parameters, culture: null);
         public abstract object Invoke(object obj, BindingFlags invokeAttr, Binder binder, object[] parameters, CultureInfo culture);
 
+        [CLSCompliant(false)]
+        public virtual void Invoke2() => throw new NotImplementedException();
+        [CLSCompliant(false)]
+        public virtual void Invoke2(TypedReference retVal) => throw new NotImplementedException();
+        [CLSCompliant(false)]
+        public virtual void Invoke2(TypedReference retVal, TypedReference arg0) => throw new NotImplementedException();
+        [CLSCompliant(false)]
+        public virtual void Invoke2(TypedReference retVal, TypedReference arg0, TypedReference arg1) => throw new NotImplementedException();
+        [CLSCompliant(false)]
+        public virtual void Invoke2(TypedReference retVal, TypedReference arg0, TypedReference arg1, TypedReference arg2) => throw new NotImplementedException();
+
         public abstract RuntimeMethodHandle MethodHandle { get; }
 
         public virtual bool IsSecurityCritical { get { throw NotImplemented.ByDesign; } }
